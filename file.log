@@ -1,9 +1,13 @@
-Sent: ву
-уу: уу: ву [2023-08-17T16:32:31.686681]
-уу: уу: ву [2023-08-17T16:32:31.705204]
 Sent: hi
+Received: Max: hi
+Max: Max: hi [2023-08-17T17:18:25.793258]
+Sent: hi
+Alex: Alex: hi [2023-08-17T17:18:28.173422]
 Received: Alex: hi
-Alex: Alex: hi [2023-08-17T16:42:50.019092]
+Test log message
 Sent: hi
-Flex: Flex: hi [2023-08-17T16:42:54.001289]
-Received: Flex: hi
+Received: Ivan: hi
+Ivan: Ivan: hi [2023-08-17T17:23:46.981067]
+Sent: hi
+Alex: Alex: hi [2023-08-17T17:23:49.313425]
+Received: Alex: hi

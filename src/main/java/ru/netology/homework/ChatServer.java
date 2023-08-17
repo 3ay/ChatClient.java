@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer {
-    static ArrayList<Socket> clientSockets = new ArrayList<>();
-    private static ConcurrentHashMap clientInfo = new ConcurrentHashMap<>();
+    public static ArrayList<Socket> clientSockets = new ArrayList<>();
+    public static ConcurrentHashMap clientInfo = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         try {
@@ -25,8 +25,6 @@ public class ChatServer {
                 Socket clientSocket = serverSocket.accept();
                 clientSockets.add(clientSocket);
                 System.out.println("Подключен клиент: " + clientSocket.getInetAddress());
-
-                // Создаем новый поток для каждого клиента.
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 Thread thread = new Thread(clientHandler);
                 thread.start();
@@ -36,7 +34,6 @@ public class ChatServer {
         }
     }
 
-    // Метод для рассылки сообщения всем клиентам, кроме отправителя.
     public static void broadcastMessage(String message, Socket senderSocket) {
         for (Socket clientSocket : clientSockets) {
             if (clientSocket != senderSocket) {
@@ -55,7 +52,7 @@ public class ChatServer {
     public static void saveClientInfo(Socket clientSocket, String clientName) {
         clientInfo.put(clientSocket, clientName);
     }
-    static int getPortFromSettings() {
+    public static int getPortFromSettings() {
         try {
             List<String> lines = Files.readAllLines(Paths.get("settings.txt"));
             for (String line : lines) {
@@ -66,7 +63,7 @@ public class ChatServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return 8080;  // Default port
+        return 8080;
     }
     public static void logMessage(String message) {
         try (PrintWriter out = new PrintWriter(new FileWriter("file.log", true))) {

@@ -6,6 +6,13 @@ import java.util.Properties;
 import java.util.Scanner;
 
 public class ChatClient {
+    private final Socket socket;
+    private final InputStream input;
+    public ChatClient(Socket socket, InputStream input) {
+        this.socket = socket;
+        this.input = input;
+    }
+
     public static void main(String[] args) {
         try {
             Properties settings = loadSettings();
@@ -15,27 +22,23 @@ public class ChatClient {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            // Ввод никнейма пользователя
             Scanner scanner = new Scanner(System.in);
             System.out.println("Введите имя пользователя");
             String nickName = scanner.nextLine();
             writer.println(nickName);
-            // Запускаем отдельный поток для приема сообщений от сервера.
             System.out.println("Теперь можете писать сообщения");
             Thread messageReceiverThread = new Thread(() -> {
                 try {
                     String message;
                     while ((message = reader.readLine()) != null) {
                         System.out.println(message);
-                        logClientMessage("Received: " + message);
+                        logClientMessage("Received: " + message, "file.log");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
             messageReceiverThread.start();
-
-            // Отправляем сообщения на сервер.
             Thread messageSenderThread = new Thread(() -> {
                 String message;
                 while ((message = scanner.nextLine()) != null) {
@@ -48,7 +51,7 @@ public class ChatClient {
                         break;
                     }
                     writer.println(message);
-                    logClientMessage("Sent: " + message);
+                    logClientMessage("Sent: " + message, "file.log");
                 }
             });
             messageSenderThread.start();
@@ -60,14 +63,14 @@ public class ChatClient {
             throw new RuntimeException(e);
         }
     }
-    public static void logClientMessage(String message) {
-        try (PrintWriter out = new PrintWriter(new FileWriter("file.log", true))) {
+    public static void logClientMessage(String message, String fileName) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(fileName, true))) {
             out.println(message);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    private static Properties loadSettings() {
+    public static Properties loadSettings() {
         Properties properties = new Properties();
         try (FileInputStream in = new FileInputStream("settings.txt")) {
             properties.load(in);

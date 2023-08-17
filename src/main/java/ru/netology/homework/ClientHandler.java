@@ -26,8 +26,6 @@ public class ClientHandler implements Runnable{
                     break;
                 }
                 System.out.println("сообщение от '" + clientName + "': " + message);
-
-                // Рассылаем сообщение всем клиентам.
                 ChatServer.broadcastMessage(clientName + ": " + message, clientSocket);
             }
         } catch (IOException e) {
