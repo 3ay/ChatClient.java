@@ -42,7 +42,7 @@ public class ChatClient {
             Thread messageSenderThread = new Thread(() -> {
                 String message;
                 while ((message = scanner.nextLine()) != null) {
-                    if ("exit".equalsIgnoreCase(message)) {
+                    if ("/exit".equalsIgnoreCase(message)) {
                         try {
                             socket.close();
                         } catch (IOException e) {
