@@ -20,6 +20,11 @@ public class ClientHandler implements Runnable{
             ChatServer.saveClientInfo(clientSocket, clientName);
             String message;
             while ((message = reader.readLine()) != null) {
+                if ("exit".equalsIgnoreCase(message)) {
+                    clientSocket.close();
+                    ChatServer.clientSockets.remove(clientSocket);
+                    break;
+                }
                 System.out.println("сообщение от '" + clientName + "': " + message);
 
                 // Рассылаем сообщение всем клиентам.

@@ -1,17 +1,16 @@
 package ru.netology.homework;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class ChatClient {
     public static void main(String[] args) {
         try {
-            Socket socket = new Socket("127.0.0.1", 8080);
+            Properties settings = loadSettings();
+            int port = Integer.parseInt(settings.getProperty("port", "8080"));
+            Socket socket = new Socket("127.0.0.1", port);
             System.out.println("Подключен к серверу.");
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -28,6 +27,7 @@ public class ChatClient {
                     String message;
                     while ((message = reader.readLine()) != null) {
                         System.out.println(message);
+                        logClientMessage("Received: " + message);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -39,7 +39,16 @@ public class ChatClient {
             Thread messageSenderThread = new Thread(() -> {
                 String message;
                 while ((message = scanner.nextLine()) != null) {
+                    if ("exit".equalsIgnoreCase(message)) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        break;
+                    }
                     writer.println(message);
+                    logClientMessage("Sent: " + message);
                 }
             });
             messageSenderThread.start();
@@ -51,4 +60,21 @@ public class ChatClient {
             throw new RuntimeException(e);
         }
     }
+    public static void logClientMessage(String message) {
+        try (PrintWriter out = new PrintWriter(new FileWriter("file.log", true))) {
+            out.println(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private static Properties loadSettings() {
+        Properties properties = new Properties();
+        try (FileInputStream in = new FileInputStream("settings.txt")) {
+            properties.load(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
+    }
+
 }
