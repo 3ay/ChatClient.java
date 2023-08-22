@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChatClient {
     private final Socket socket;
@@ -14,6 +15,7 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
+        AtomicBoolean isIntentionalClose = new AtomicBoolean(false);
         try {
             Properties settings = loadSettings();
             int port = Integer.parseInt(settings.getProperty("port", "8080"));
@@ -27,23 +29,13 @@ public class ChatClient {
             String nickName = scanner.nextLine();
             writer.println(nickName);
             System.out.println("Теперь можете писать сообщения");
-            Thread messageReceiverThread = new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = reader.readLine()) != null) {
-                        System.out.println(message);
-                        logClientMessage("Received: " + message, "file.log");
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            messageReceiverThread.start();
+            Thread messageReceiverThread = getMessageReceiverThread(reader, isIntentionalClose);
             Thread messageSenderThread = new Thread(() -> {
                 String message;
                 while ((message = scanner.nextLine()) != null) {
                     if ("/exit".equalsIgnoreCase(message)) {
                         try {
+                            isIntentionalClose.set(true);
                             socket.close();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -63,6 +55,27 @@ public class ChatClient {
             throw new RuntimeException(e);
         }
     }
+
+    private static Thread getMessageReceiverThread(BufferedReader reader, AtomicBoolean isIntentionalClose) {
+        Thread messageReceiverThread = new Thread(() -> {
+            try {
+                String message;
+                while ((message = reader.readLine()) != null) {
+                    System.out.println(message);
+                    logClientMessage("Received: " + message, "file.log");
+                }
+            } catch (IOException e) {
+                if (isIntentionalClose.get()) {
+                    System.out.println("Вы вышли из чата");
+                } else {
+                    e.printStackTrace();
+                }
+            }
+        });
+        messageReceiverThread.start();
+        return messageReceiverThread;
+    }
+
     public static void logClientMessage(String message, String fileName) {
         try (PrintWriter out = new PrintWriter(new FileWriter(fileName, true))) {
             out.println(message);
